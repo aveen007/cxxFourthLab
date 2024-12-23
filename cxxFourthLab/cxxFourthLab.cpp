@@ -26,6 +26,8 @@ int main()
    myMatrix.set(1, 1, 2);
    std::cout << myMatrix(1, 1);
    SparseMatrix<double > invertedMatrix= myMatrix.inverse();
+   myMatrix = myMatrix ^ 2;
+   myMatrix=myMatrix.exp(3);
 
    
     std::cout << "Hello World!\n";

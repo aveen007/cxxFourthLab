@@ -141,6 +141,14 @@ public:
     
 
 
+    SparseMatrix<T> operator^(const T& exponant) const {
+     
+        SparseMatrix<T> result(rows, cols);
+        for (const auto& pair : data) {
+            result.set(pair.first.first,pair.first.second, std::pow(pair.second , exponant))  ;
+        }
+        return result;
+    }
     SparseVector<T> operator*(const SparseVector<T>& vec) const {
         if (cols != vec.getSize()) {
             throw std::invalid_argument("Matrix column count must match vector size");
@@ -152,6 +160,7 @@ public:
         }
         return result;
     }
+
     SparseMatrix<T> operator*(const SparseMatrix<T>& other) const {
         if (!isSquare()) {
             throw std::invalid_argument("Matrix column count of the first matrix must match the row count of the second matrix.");
@@ -173,12 +182,78 @@ public:
 
                 // Check if the column of the first matrix matches the row of the second matrix
                 if (col1 == row2) {
-                    result[row1][col2] += value1 * value2;
+                    result(row1,col2) += value1 * value2;
                 }
             }
         }
         return result;
     }
+    SparseMatrix<T> operator/(const T& denominator) const {
+        if (denominator == T(0)) {
+            throw std::invalid_argument("Cannot divide by zero.");
+        }
+
+        SparseMatrix<T> result(rows, cols);
+        for (const auto& pair : data) {
+            result.set(pair.first.first, pair.first.second, pair.second / denominator);
+        }
+        return result;
+    }
+
+    // Matrix exponentiation for integer exponents
+    SparseMatrix<T> pow(int exponent) const {
+        if (rows != cols) {
+            throw std::invalid_argument("Matrix is not square!!");
+        }
+        SparseMatrix<T> result(rows, cols);
+        SparseMatrix<T> base = *this;
+
+        // Initialize result as the identity matrix
+        for (int i = 0; i < rows; ++i) {
+            result.set(i, i, T(1));
+        }
+
+        while (exponent) {
+            if (exponent % 2 == 1) {
+                result = result * base; // Implement a multiplication operator
+            }
+            base = base * base; // Implement a multiplication operator
+            exponent /= 2;
+        }
+        return result;
+    }
+
+    // Matrix exponentiation for real exponents (using series expansion)
+    SparseMatrix<T> exp(double exponent) const {
+        if (rows != cols) {
+            throw std::invalid_argument("Matrix must be square for exponentiation");
+        }
+
+        SparseMatrix<T> result(rows, cols);
+        SparseMatrix<T> term=(*this);
+        for (int i = 0; i < rows; ++i) {
+            result.set(i, i, T(1));
+        }
+        result = result + term;
+        int n = 2;
+
+        // Calculate e^(A) = I + A + (A^2)/2! + (A^3)/3! + ...
+        while (n < 16) { // Limit the series to a reasonable number of terms
+          
+                long long int f = factorial(n);
+                term = term * (*this);
+                term = term / static_cast<T>(f); 
+                result = result + term;
+            ++n;
+        }
+        return result;
+    }
+
+    // Factorial utility function
+    static int factorial(int n) {
+        return (n <= 1) ? 1 : n * factorial(n - 1);
+    }
+
 
 
     // Iterator class for SparseMatrix

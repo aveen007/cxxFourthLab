@@ -47,6 +47,14 @@ public:
         }
         return result;
     }
+    SparseVector<T> operator^(const T exponant) const {
+        SparseVector<T> result(size);
+        for (const auto& pair : data) {
+            result.set(pair.first, std::pow(pair.second,exponant));
+        }
+       
+        return result;
+    }
 
     T dot(const SparseVector<T>& other) const {
         T result = 0;
