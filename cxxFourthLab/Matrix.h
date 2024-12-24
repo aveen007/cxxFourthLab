@@ -20,6 +20,7 @@ private:
 
 public:
     SparseMatrix(int rows, int cols) : rows(rows), cols(cols) {}
+    SparseMatrix() = default;
 
     // Set value at (row, col)
     void set(int row, int col, T value) {
@@ -93,13 +94,11 @@ public:
     }
 
     SparseMatrix<T> operator+(const SparseMatrix<T>& other) const {
-        SparseMatrix<T> result(rows, cols);
+        SparseMatrix<T> result;
         for (const auto& pair : data) {
-            result(pair.first.first, pair.first.second) += pair.second;
+            result.set(pair.first.first, pair.first.second,  pair.second+other(pair.first.first, pair.first.second));
         }
-        for (const auto& pair : other.data) {
-            result(pair.first.first, pair.first.second) += pair.second;
-        }
+ 
         return result;
     }
 
@@ -285,11 +284,11 @@ public:
         int n = 2;
 
         // Calculate e^(A) = I + A + (A^2)/2! + (A^3)/3! + ...
-        while (n<16){ // Limit the series to a reasonable number of terms
+        while (n<100){ // Limit the series to a reasonable number of terms
           
                 long long int f = factorial(n);
                 term = term * (*this);
-                term = term / static_cast<T>(f); 
+                term = term / static_cast<T>(n); 
                 result = result + term;
             ++n;
         }

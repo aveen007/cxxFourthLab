@@ -40,11 +40,19 @@ public:
     SparseVector<T> operator+(const SparseVector<T>& other) const {
         SparseVector<T> result(size);
         for (const auto& pair : data) {
-            result.set(pair.first, pair.second) ;
+            result.set(pair.first, pair.second+other[pair.first]);
         }
-        for (const auto& pair : other.data) {
+   /*     for (const auto& pair : other.data) {
             result.set(pair.first, result[pair.first] + pair.second);
+        }*/
+        return result;
+    }
+    SparseVector<T> operator*(const T scalar) const {
+        SparseVector<T> result(size);
+        for (const auto& pair : data) {
+            result.set(pair.first, pair.second * scalar);
         }
+
         return result;
     }
     SparseVector<T> operator^(const T exponant) const {
