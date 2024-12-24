@@ -60,6 +60,37 @@ public:
         }
         return T(); // Return default value if not found
     }
+    bool operator==(const SparseMatrix<T>& other) const {
+        if (this->rows != other.rows || this->rows != other.cols) {
+            return false;
+        }
+
+        for (const auto& pair : this->data) {
+            if (other.data.find(pair.first) == other.data.end() || other(pair.first.first, pair.first.second) != pair.second) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    SparseMatrix<T> operator-(const SparseMatrix<T>& other) const {
+        if (this->rows != other.rows || this->cols != other.cols) {
+            throw std::invalid_argument("Matrices must have the same dimensions for subtraction.");
+        }
+
+        SparseMatrix<T> result(rows, cols);
+        for (const auto& pair : data) {
+            result.set(pair.first.first, pair.first.second, pair.second - other(pair.first.first, pair.first.second));
+        }
+
+        for (const auto& pair : other.data) {
+            if (result.data.find(pair.first) == result.data.end()) {
+                result.set(pair.first.first, pair.first.second, -pair.second);
+            }
+        }
+
+        return result;
+    }
 
     SparseMatrix<T> operator+(const SparseMatrix<T>& other) const {
         SparseMatrix<T> result(rows, cols);
@@ -188,6 +219,14 @@ public:
         }
         return result;
     }
+
+    SparseMatrix<T> operator*(const T& scalar) const {
+        SparseMatrix<T> result(rows, cols);
+        for (const auto& pair : data) {
+            result.set(pair.first.first, pair.first.second, pair.second * scalar);
+        }
+        return result;
+    }
     SparseMatrix<T> operator/(const T& denominator) const {
         if (denominator == T(0)) {
             throw std::invalid_argument("Cannot divide by zero.");
@@ -222,9 +261,17 @@ public:
         }
         return result;
     }
-
+    SparseMatrix<T> pow(double exponent) const {
+        if (rows != cols) {
+            throw std::invalid_argument("Matrix is not square!!");
+        }
+        
+        SparseMatrix<T> logMatrix =log(); // Compute the logarithm of the matrix
+        SparseMatrix<T> result = logMatrix * exponent; // Scale the log matrix by the exponent
+        return result.exp(); // Return the exponential of the result
+    }
     // Matrix exponentiation for real exponents (using series expansion)
-    SparseMatrix<T> exp(double exponent) const {
+    SparseMatrix<T> exp() const {
         if (rows != cols) {
             throw std::invalid_argument("Matrix must be square for exponentiation");
         }
@@ -238,7 +285,7 @@ public:
         int n = 2;
 
         // Calculate e^(A) = I + A + (A^2)/2! + (A^3)/3! + ...
-        while (n < 16) { // Limit the series to a reasonable number of terms
+        while (n<16){ // Limit the series to a reasonable number of terms
           
                 long long int f = factorial(n);
                 term = term * (*this);
@@ -248,12 +295,61 @@ public:
         }
         return result;
     }
-
+    double frobeniusNorm(const SparseMatrix<T>& matrix)const {
+        double norm = 0.0;
+        for (int i = 0; i <= matrix.rows; ++i) {
+            for (int j = 0; j <= matrix.cols; ++j) {
+                norm += std::pow(std::abs(matrix(i, j)), 2);
+            }
+        }
+        return std::sqrt(norm);
+    }
     // Factorial utility function
     static int factorial(int n) {
         return (n <= 1) ? 1 : n * factorial(n - 1);
     }
+     SparseMatrix<T> log() const{
+      if (!isSquare()) {
+        throw std::invalid_argument("Matrix must be square to compute the logarithm.");
+      }
 
+      SparseMatrix<T> result(rows, cols);
+      SparseMatrix<T> I(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; j++) {
+            result.set(i, i, T(0));
+
+            }
+        }
+      for (int i = 0; i < rows; ++i) {
+          I.set(i, i, T(1));
+      }
+      if (*this == I) {
+
+        return result;
+      }
+
+   
+     
+      if (frobeniusNorm(*this) >= 1)
+        throw std::invalid_argument("norm must be less than 1.");
+
+      SparseMatrix<T> A_minus_I = *this - I;
+      SparseMatrix<T> term = A_minus_I;
+
+      for (int n = 1; n <= 100; ++n) {
+        if (n > 1) {
+          term = term * A_minus_I;
+        }
+        if (n % 2 == 0) {
+          result = result - term / static_cast<T>(n);
+        } else {
+          result = result + term / static_cast<T>(n);
+        }
+      }
+
+      return result;
+    }
 
 
     // Iterator class for SparseMatrix

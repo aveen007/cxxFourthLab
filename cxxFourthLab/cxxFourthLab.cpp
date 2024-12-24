@@ -27,7 +27,8 @@ int main()
    std::cout << myMatrix(1, 1);
    SparseMatrix<double > invertedMatrix= myMatrix.inverse();
    myMatrix = myMatrix ^ 2;
-   myMatrix=myMatrix.exp(3);
+   myMatrix = myMatrix.exp();
+   myMatrix=myMatrix.pow(2.5);
 
    
     std::cout << "Hello World!\n";
