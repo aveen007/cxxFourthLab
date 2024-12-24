@@ -56,10 +56,10 @@
             }
             else {
                 data.erase({ row, col });  } }
-       ```
+     ```
    -  и я поддержал свои собственные итераторы, используя класс итератора, подобный этому
-       ```cpp
-          class Iterator {
+      ```cpp
+        class Iterator {
           private:
               typename std::unordered_map<std::pair<int, int>, T>::iterator it;
       
@@ -89,6 +89,7 @@
               return Iterator(data.end());
           }
       };
+        
       ```
 
 2. **Унарные и бинарные операции для векторов и матриц**
